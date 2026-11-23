@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f1216">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="記錄器">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<title>idGoLive 控制台</title>
+<style>
+:root{--bg:#0f1216;--card:#1a1f26;--line:#2b333d;--fg:#e8edf2;--mut:#93a1b0;--acc:#4da3ff;--ok:#3ddc84;--warn:#ffc857;--bad:#ff6b6b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:14px;padding-bottom:50px;max-width:560px;margin:0 auto}
+h1{font-size:22px;margin:2px 0 2px;letter-spacing:.3px}
+h2{font-size:15px;margin:0 0 10px;color:var(--acc);font-weight:600}
+.sub{color:var(--mut);font-size:12px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.seg{display:flex;background:#0b0e12;border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:transparent;color:var(--mut);padding:9px 6px;border-radius:8px;font-size:13px;cursor:pointer}
+.seg button.on{background:var(--acc);color:#06121f;font-weight:700}
+a.btn{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#252d36;color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:14px;text-decoration:none;cursor:pointer;margin-bottom:7px}
+a.btn:active{opacity:.65}
+a.btn small{color:var(--mut);font-size:11px;font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+a.btn.hero{background:linear-gradient(135deg,#1d6fd0,#36a3ff);border-color:#4da3ff;color:#fff;font-weight:700;font-size:17px;justify-content:center;padding:17px}
+a.btn.hero small{color:#dbeaff}
+a.btn.step{background:#1d2832;border-color:#31465a}
+a.btn.warn{background:#3a2c14;border-color:#6b5220;color:var(--warn)}
+a.btn.stop{background:#321d1d;border-color:#5c2b2b;color:var(--bad)}
+a.btn.ok{background:#123322;border-color:#235c37;color:var(--ok)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.grid a.btn{justify-content:center;text-align:center;margin:0;font-size:13px;padding:12px 6px}
+.grid a.btn small{display:none}
+.note{font-size:12px;color:var(--mut);line-height:1.65}
+.note b{color:var(--fg)}
+ol{margin:6px 0 0;padding-left:20px}
+li{margin-bottom:6px;font-size:13px;color:var(--mut)}
+.badge{display:inline-block;background:#123322;color:var(--ok);border-radius:8px;padding:2px 8px;font-size:11px;margin-left:6px}
+.hide{display:none}
+code{background:#0b0e12;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12px;color:#b8c6d4;word-break:break-all}
+details{margin-top:10px}
+summary{cursor:pointer;color:var(--mut);font-size:12px}
+.setrow{padding:9px 0;border-bottom:1px solid var(--line)}
+.setrow:last-child{border-bottom:0}
+.setlabel{font-size:13px;margin-bottom:6px}
+.setlabel small{color:var(--mut);font-size:11px;font-family:ui-monospace,Menlo,monospace}
+.setctrl{display:flex;gap:7px;align-items:center}
+input[type=number],input[type=text]{background:#0b0e12;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:14px;width:110px}
+a.mini{margin:0;padding:9px 14px;font-size:13px;justify-content:center;background:#1d4f7a;border-color:#2f6fa5}
+.danger{border-color:#5c2b2b}
+</style>
+</head>
+<body>
+
+<h1>idGoLive 控制台 <span class="badge">免安裝</span></h1>
+<div class="sub">iPhone Safari · 連到記錄器 Wi-Fi 後使用 <span id="offline" class="badge hide">離線可用</span></div>
+
+<div class="seg">
+  <button id="ipA" class="on" onclick="setIp('a')">記錄器 A <small>192.168.1.254</small></button>
+  <button id="ipB" onclick="setIp('b')">記錄器 B <small>192.168.169.1</small></button>
+</div>
+
+<div class="card">
+  <h2>連線檢測</h2>
+  <a class="btn ok" data-path="/?custom=1&amp;cmd=3016">測試連線（心跳） <small>cmd=3016</small></a>
+  <div class="note" style="margin:8px 0 12px">
+    出現 <code>&lt;Status&gt;0&lt;/Status&gt;</code> = <b>已連線</b>；顯示「無法開啟頁面」= 沒連接到記錄器。
+    看完請關閉分頁回到這頁。
+  </div>
+  <div class="grid">
+    <a class="btn" data-path="/?custom=1&amp;cmd=3014">目前所有設定</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=3012">韌體版本</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=2019">串流網址</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=3002">支援指令</a>
+  </div>
+</div>
+
+<div class="card">
+  <h2>即時影像</h2>
+  <a class="btn hero" data-path=":8192">▶ 開啟即時影像 (MJPEG)</a>
+  <div class="note" style="margin:10px 0">
+    記錄器在<b>照片模式</b>才會提供 Safari 能播的 MJPEG。第一次請先完成下面三步。
+  </div>
+  <a class="btn step" data-path="/?custom=1&amp;cmd=3001&amp;par=0">① 切換到照片模式 <small>cmd=3001 par=0</small></a>
+  <a class="btn step" data-path="/?custom=1&amp;cmd=2015&amp;par=1">② 啟動即時預覽 <small>cmd=2015 par=1</small></a>
+  <a class="btn warn" data-path="/?custom=1&amp;cmd=2014&amp;str=300">太卡？降低預覽位元率 <small>cmd=2014 str=300</small></a>
+  <a class="btn stop" data-path="/?custom=1&amp;cmd=2015&amp;par=0">停止預覽 <small>cmd=2015 par=0</small></a>
+</div>
+
+<div class="card">
+  <h2>錄影 / 拍照 / 檔案</h2>
+  <div class="grid">
+    <a class="btn" data-path="/?custom=1&amp;cmd=2001&amp;par=1">開始錄影</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=2001&amp;par=0">停止錄影</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=1001">拍照</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=3001&amp;par=1">切回錄影模式</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=3001&amp;par=2">進入回放模式</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=3015">檔案列表</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=3017">剩餘空間</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=3024">SD 卡狀態</a>
+  </div>
+  <a class="btn" data-path="/" style="margin-top:7px">📁 打開 SD 卡檔案網頁（可下載）</a>
+</div>
+
+<div class="card">
+  <h2>開關設定</h2>
+  <div class="grid">
+    <a class="btn" data-path="/?custom=1&amp;cmd=2003&amp;par=1">循環錄影 開</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=2003&amp;par=0">循環錄影 關</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=2004&amp;par=1">WDR 開</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=2004&amp;par=0">WDR 關</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=2007&amp;par=1">錄音 開</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=2007&amp;par=0">錄音 關</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=2008&amp;par=1">時間浮水印 開</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=2008&amp;par=0">時間浮水印 關</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=2006&amp;par=1">移動偵測 開</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=2006&amp;par=0">移動偵測 關</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=2012&amp;par=1">自動錄影 開</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=2012&amp;par=0">自動錄影 關</a>
+  </div>
+</div>
+
+<div class="card">
+  <h2>數值設定</h2>
+  <div class="note" style="margin-bottom:10px">輸入數值後按「設定」。按之前可先用上面「目前所有設定」查目前值。</div>
+
+  <div class="setrow">
+    <div class="setlabel">錄影位元率 <small>cmd=2013 · KB/s</small></div>
+    <div class="setctrl"><input type="number" id="v2013" value="1450" inputmode="numeric"><a class="btn mini" data-cmd="2013" data-param="str" data-input="v2013">設定</a></div>
+  </div>
+  <div class="setrow">
+    <div class="setlabel">預覽位元率 <small>cmd=2014 · KB/s</small></div>
+    <div class="setctrl"><input type="number" id="v2014" value="800" inputmode="numeric"><a class="btn mini" data-cmd="2014" data-param="str" data-input="v2014">設定</a></div>
+  </div>
+  <div class="setrow">
+    <div class="setlabel">錄影解析度 <small>cmd=2002 · 0..N</small></div>
+    <div class="setctrl"><input type="number" id="v2002" value="5" inputmode="numeric"><a class="btn mini" data-cmd="2002" data-param="par" data-input="v2002">設定</a></div>
+  </div>
+  <div class="setrow">
+    <div class="setlabel">預覽解析度 <small>cmd=2010 · 0..N</small></div>
+    <div class="setctrl"><input type="number" id="v2010" value="3" inputmode="numeric"><a class="btn mini" data-cmd="2010" data-param="par" data-input="v2010">設定</a></div>
+  </div>
+  <div class="setrow">
+    <div class="setlabel">G-Sensor 靈敏度 <small>cmd=2011 · 0=off 1=low 2=med 3=high</small></div>
+    <div class="setctrl"><input type="number" id="v2011" value="2" inputmode="numeric"><a class="btn mini" data-cmd="2011" data-param="par" data-input="v2011">設定</a></div>
+  </div>
+  <div class="setrow">
+    <div class="setlabel">自動斷電 <small>cmd=3007 · 0=off 1=1min 2=2min 3=3min 4=5min 5=10min</small></div>
+    <div class="setctrl"><input type="number" id="v3007" value="0" inputmode="numeric"><a class="btn mini" data-cmd="3007" data-param="par" data-input="v3007">設定</a></div>
+  </div>
+  <div class="setrow">
+    <div class="setlabel">語言 <small>cmd=3008 · 7=繁中 0=英文</small></div>
+    <div class="setctrl"><input type="number" id="v3008" value="7" inputmode="numeric"><a class="btn mini" data-cmd="3008" data-param="par" data-input="v3008">設定</a></div>
+  </div>
+  <div class="setrow">
+    <div class="setlabel">日期 <small>cmd=3005 · 格式 yyyy-mm-dd</small></div>
+    <div class="setctrl"><input type="text" id="v3005" value="2026-11-23"><a class="btn mini" data-cmd="3005" data-param="str" data-input="v3005">設定</a></div>
+  </div>
+  <div class="setrow">
+    <div class="setlabel">時間 <small>cmd=3006 · 格式 hh:mm:ss</small></div>
+    <div class="setctrl"><input type="text" id="v3006" value="12:00:00"><a class="btn mini" data-cmd="3006" data-param="str" data-input="v3006">設定</a></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>系統</h2>
+  <div class="grid">
+    <a class="btn" data-path="/?custom=1&amp;cmd=3021">儲存設定</a>
+    <a class="btn" data-path="/?custom=1&amp;cmd=3018">重連 Wi-Fi</a>
+  </div>
+  <a class="btn warn danger" data-path="/?custom=1&amp;cmd=3010&amp;par=1" onclick="return confirm('確定格式化記憶卡？所有資料會被清除！')">格式化記憶卡 <small>cmd=3010</small></a>
+  <a class="btn stop danger" data-path="/?custom=1&amp;cmd=3011" onclick="return confirm('確定重置所有設定？')">系統重置 <small>cmd=3011</small></a>
+</div>
+
+<div class="card">
+  <h2>使用說明</h2>
+  <ol>
+    <li>iPhone 連到<b>記錄器的 Wi-Fi</b>。第一次開本頁需要有網路讓離線快取完成（出現「離線可用」）。</li>
+    <li>Safari 分享 → <b>加入主畫面</b>，之後像 App 一樣一鍵開，連記錄器沒網路也能用。</li>
+    <li>點按鈕會<b>開新分頁</b>顯示記錄器回應；看完用返回或關閉分頁回到控制台。</li>
+    <li>看即時影像：先點「① 切換到照片模式」→「② 啟動即時預覽」→ 最上面的大按鈕。</li>
+    <li>看完影像要恢復錄影：點「停止預覽」→「切回錄影模式」。</li>
+  </ol>
+  <details>
+    <summary>為什麼不能自動顯示連線狀態？</summary>
+    <div class="note" style="margin-top:8px">
+      GitHub Pages 是 HTTPS，瀏覽器不允許它用 <code>fetch()</code> 讀
+      <code>http://192.168.1.254</code>（混內容 + CORS + 私網防護）。
+      所以改用「點連結開新分頁」—— 這是使用者主動導航，瀏覽器允許，
+      也不需要任何中繼伺服器。代價是需要看一眼回應、再返回控制台。
+    </div>
+  </details>
+  <details>
+    <summary>照片模式的限制</summary>
+    <div class="note" style="margin-top:8px">
+      照片模式下<b>不會錄影</b>。記錄器在錄影模式時改用 RTSP H.264，Safari 不支援，
+      那種情況一定要額外的轉碼裝置，單靠 iPhone 做不到。
+    </div>
+  </details>
+</div>
+
+<script>
+var ip = '192.168.1.254';
+function setIp(which){
+  ip = which === 'b' ? '192.168.169.1' : '192.168.1.254';
+  document.getElementById('ipA').classList.toggle('on', which === 'a');
+  document.getElementById('ipB').classList.toggle('on', which === 'b');
+  try { localStorage.setItem('idgolive_ip', which); } catch(e){}
+  render();
+}
+function render(){
+  document.querySelectorAll('a.btn[data-path]').forEach(function(a){
+    a.href = 'http://' + ip + a.getAttribute('data-path');
+    a.setAttribute('target','_blank');
+    a.setAttribute('rel','noopener');
+  });
+  document.querySelectorAll('a[data-cmd]').forEach(function(a){
+    a.setAttribute('target','_blank');
+    a.setAttribute('rel','noopener');
+  });
+}
+document.querySelectorAll('a[data-cmd]').forEach(function(a){
+  a.addEventListener('click', function(){
+    var cmd = this.getAttribute('data-cmd');
+    var ptype = this.getAttribute('data-param');
+    var inputId = this.getAttribute('data-input');
+    var val = inputId ? document.getElementById(inputId).value.trim() : '';
+    this.href = 'http://' + ip + '/?custom=1&cmd=' + cmd + '&' + ptype + '=' + encodeURIComponent(val);
+  });
+});
+try {
+  var saved = localStorage.getItem('idgolive_ip');
+  if (saved === 'b') setIp('b');
+} catch(e){}
+render();
+
+function updateOfflineBadge(){
+  var badge = document.getElementById('offline');
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) badge.classList.remove('hide');
+}
+updateOfflineBadge();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+    navigator.serviceWorker.addEventListener('controllerchange', updateOfflineBadge);
+  });
+}
+</script>
+</body>
+</html>
