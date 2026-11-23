@@ -62,12 +62,20 @@ a.mini{margin:0;padding:9px 14px;font-size:13px;justify-content:center;backgroun
   <button id="ipB" onclick="setIp('b')">記錄器 B <small>192.168.169.1</small></button>
 </div>
 
+<div class="card" style="padding:11px 14px">
+  <div class="setlabel">自訂 IP <small>iPhone 設定 → Wi-Fi → ⓘ → 路由器</small></div>
+  <div class="setctrl">
+    <input type="text" id="customIp" placeholder="例如 192.168.1.1" inputmode="decimal">
+    <a class="btn mini" onclick="applyCustomIp()">套用</a>
+  </div>
+</div>
+
 <div class="card">
   <h2>連線檢測</h2>
   <a class="btn ok" data-path="/?custom=1&amp;cmd=3016">測試連線（心跳） <small>cmd=3016</small></a>
   <div class="note" style="margin:8px 0 12px">
-    出現 <code>&lt;Status&gt;0&lt;/Status&gt;</code> = <b>已連線</b>；顯示「無法開啟頁面」= 沒連接到記錄器。
-    看完請關閉分頁回到這頁。
+    出現 <code>&lt;Status&gt;0&lt;/Status&gt;</code> = <b>已連線</b>；顯示「無法開啟頁面」= IP 選錯或沒連接到記錄器。
+    先切「記錄器 B」試，還是不行就在上方<b>自訂 IP</b> 輸入路由器位置。看完請關閉分頁回到這頁。
   </div>
   <div class="grid">
     <a class="btn" data-path="/?custom=1&amp;cmd=3014">目前所有設定</a>
@@ -203,12 +211,24 @@ a.mini{margin:0;padding:9px 14px;font-size:13px;justify-content:center;backgroun
 
 <script>
 var ip = '192.168.1.254';
-function setIp(which){
-  ip = which === 'b' ? '192.168.169.1' : '192.168.1.254';
+function setIp(which, value){
+  if (which === 'b') ip = '192.168.169.1';
+  else if (which === 'c') ip = value || ip;
+  else ip = '192.168.1.254';
   document.getElementById('ipA').classList.toggle('on', which === 'a');
   document.getElementById('ipB').classList.toggle('on', which === 'b');
-  try { localStorage.setItem('idgolive_ip', which); } catch(e){}
+  try {
+    localStorage.setItem('idgolive_ip', which);
+    if (which === 'c') localStorage.setItem('idgolive_custom_ip', ip);
+  } catch(e){}
   render();
+}
+function applyCustomIp(){
+  var el = document.getElementById('customIp');
+  var v = el.value.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
+  if (!v) { alert('請先輸入 IP'); return; }
+  el.value = v;
+  setIp('c', v);
 }
 function render(){
   document.querySelectorAll('a.btn[data-path]').forEach(function(a){
@@ -233,6 +253,11 @@ document.querySelectorAll('a[data-cmd]').forEach(function(a){
 try {
   var saved = localStorage.getItem('idgolive_ip');
   if (saved === 'b') setIp('b');
+  else if (saved === 'c') {
+    var custom = localStorage.getItem('idgolive_custom_ip');
+    document.getElementById('customIp').value = custom || '';
+    setIp('c', custom || ip);
+  }
 } catch(e){}
 render();
 

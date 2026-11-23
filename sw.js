@@ -1,4 +1,4 @@
-var CACHE = 'idgolive-console-v1';
+var CACHE = 'idgolive-console-v2';
 var ASSETS = [
   './',
   './index.html',
